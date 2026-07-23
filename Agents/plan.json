@@ -1,0 +1,61 @@
+{
+  "dataset_name": "corn",
+  "task_type": "regression",
+  "step_preprocess": {
+    "enabled": true,
+    "method": "savitzky_golay",
+    "input_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Data\\Raw Data\\corn.csv",
+    "output_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Preprocessed Data\\corn_savitzky_golay_preprocessed.csv"
+  },
+  "step_model_main": {
+    "method": "EPSpec_plsr",
+    "family": "wavelength_selection_regression",
+    "task_type": "regression",
+    "input_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Preprocessed Data\\corn_savitzky_golay_preprocessed.csv",
+    "out_dir": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\wavelength selection\\corn\\Epspec"
+  },
+  "step_model_compare": {
+    "enabled": true,
+    "models": [
+      {
+        "method": "plsr",
+        "family": "baseline_regression",
+        "task_type": "regression",
+        "input_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Preprocessed Data\\corn_savitzky_golay_preprocessed.csv",
+        "out_dir": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Baseline\\corn\\plsr_cv_results"
+      },
+      {
+        "method": "ipls_plsr",
+        "family": "ipls_cars_regression",
+        "task_type": "regression",
+        "input_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Preprocessed Data\\corn_savitzky_golay_preprocessed.csv",
+        "out_dir": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\ipls and cars\\corn\\ipls_plsr_cv_results"
+      },
+      {
+        "method": "cars_plsr",
+        "family": "ipls_cars_regression",
+        "task_type": "regression",
+        "input_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Preprocessed Data\\corn_savitzky_golay_preprocessed.csv",
+        "out_dir": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\ipls and cars\\corn\\cars_plsr_cv_results"
+      },
+      {
+        "method": "EPSpec_plsr_sliding",
+        "family": "wavelength_selection_regression",
+        "task_type": "regression",
+        "input_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Preprocessed Data\\corn_savitzky_golay_preprocessed.csv",
+        "out_dir": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\wavelength selection\\corn\\Epspec_sliding"
+      }
+    ]
+  },
+  "step_report": {
+    "enabled": true,
+    "input_dir_main": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\wavelength selection\\corn\\Epspec",
+    "input_dirs_compare": [
+      "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\Baseline\\corn\\plsr_cv_results",
+      "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\ipls and cars\\corn\\ipls_plsr_cv_results",
+      "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\ipls and cars\\corn\\cars_plsr_cv_results",
+      "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Experiments\\Tests\\wavelength selection\\corn\\Epspec_sliding"
+    ],
+    "output_path": "your address\\EPSpec_ An Evidence-Guided, Prior-Retrieval Agent for NIR Band Selection\\Agents"
+  }
+}
