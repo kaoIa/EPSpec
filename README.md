@@ -42,13 +42,19 @@ For the prompt-related components of this repository, readers are advised to use
 
 English translations may be prepared when necessary for readability, adaptation, or reproduction. However, the translated prompts should be carefully verified to ensure that their meanings and instructions remain consistent with those of the original Chinese prompts.
 
+## Parameter Settings
+
+Most parameters can be used with their default settings. For PLSR, the number of latent variables is selected using the one-standard-error (one-SE) rule. The default upper bound for the number of latent variables is 30, which can be used for the shootout and soil datasets. For the corn dataset, an upper bound of 10 is recommended because of the behavior of its validation-error curve as the number of latent variables increases.
+
+The selection and analysis of some parameter settings are discussed in the paper. For parameters not explicitly specified, readers may explore alternative settings according to their own datasets and tasks or contact the authors for further information.
+
 ## Extensibility
 
 Although the band-selection algorithm presented in this project was evaluated only for regression modeling using partial least squares regression (PLSR), the algorithm itself is not inherently tied to PLSR or to a specific predictive model.
 
 In principle, it may also be integrated with other regression methods, such as support vector regression (SVR), principal component regression (PCR), and random forest regression. After appropriately adapting the evaluation criteria and optimization objectives, it may also be explored for classification tasks using methods such as linear discriminant analysis (LDA), support vector machines (SVM), and random forests.
 
-To control computational costs, limit the experimental scope, and keep the presentation of the paper focused and manageable, the paper reports only the most representative and commonly used setting: a near-infrared spectral regression task based on PLSR. Readers may further evaluate, adapt, and improve the proposed band-selection algorithm for other regression models, classification tasks, and application scenarios.
+To control token costs, limit the experimental scope, and keep the presentation of the paper focused and manageable, the paper reports only the most representative and commonly used setting: a near-infrared spectral regression task based on PLSR. Readers may further evaluate, adapt, and improve the proposed band-selection algorithm for other regression models, classification tasks, and application scenarios.
 
 ## Agent Framework
 
