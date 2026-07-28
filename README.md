@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository provides implementations of some core algorithms of EPSpec. It also contains the datasets used in this project and their preprocessed versions, as well as SVG figures illustrating the method framework and selected experimental result comparisons, together with CSV files containing parts of the prior knowledge base.
+This repository provides research-oriented implementations of key components of EPSpec, together with selected experimental scripts used in this study. It also contains the datasets used in this project and their preprocessed versions, as well as SVG figures illustrating the method framework and selected experimental result comparisons, together with CSV files containing parts of the prior knowledge base.
 
 ## Environment and API Configuration
 
