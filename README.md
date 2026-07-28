@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository provides the complete implementation of core algorithms of EPSpec. It also contains all datasets used in this project and their preprocessed versions, as well as SVG figures illustrating the method framework and selected experimental result comparisons, together with CSV files containing parts of the prior knowledge base.
+This repository provides implementations of some core algorithms of EPSpec. It also contains the datasets used in this project and their preprocessed versions, as well as SVG figures illustrating the method framework and selected experimental result comparisons, together with CSV files containing parts of the prior knowledge base.
 
 ## Environment and API Configuration
 
@@ -44,7 +44,7 @@ English translations may be prepared when necessary for readability, adaptation,
 
 ## Parameter Settings
 
-Most parameters can be used with their default settings. For PLSR, the number of latent variables is selected using the one-standard-error (one-SE) rule. The default upper bound for the number of latent variables is 30, which can be used for the shootout and soil datasets. For the corn dataset, an upper bound of 10 is recommended because of the behavior of its validation-error curve as the number of latent variables increases.
+Most parameters can be used with their default settings. For PLSR, the number of latent variables is selected using the one-standard-error (one-SE) rule. The default upper bound for the number of latent variables is 30, which can be used for the shootout and soil datasets. For the corn dataset, an upper bound of 10 is recommended because of the behavior of its validation-error curve as the number of latent variables increases. Due to the stochastic nature of large language models, output quality may also vary across different models and parameter settings, and repeated runs may not always produce identical results.
 
 The selection and analysis of some parameter settings are discussed in the paper. For parameters not explicitly specified, readers may explore alternative settings according to their own datasets and tasks or contact the authors for further information.
 
