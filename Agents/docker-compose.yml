@@ -1,0 +1,23 @@
+services:
+  epspec-api:
+    build:
+      context: ..
+      dockerfile: Agents/Dockerfile
+    environment:
+      EPSPEC_OFFLINE: ${EPSPEC_OFFLINE:-true}
+      EPSPEC_EXECUTION_MODE: ${EPSPEC_EXECUTION_MODE:-simulate}
+      EPSPEC_AUTO_APPROVE: ${EPSPEC_AUTO_APPROVE:-false}
+      EPSPEC_PLANNER_API_KEY: ${EPSPEC_PLANNER_API_KEY:-}
+      EPSPEC_INTERPRETER_API_KEY: ${EPSPEC_INTERPRETER_API_KEY:-}
+      EPSPEC_SCIENTIFIC_API_KEY: ${EPSPEC_SCIENTIFIC_API_KEY:-}
+      EPSPEC_SERVER_TOKEN: ${EPSPEC_SERVER_TOKEN:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./runs:/workspace/Agents/runs
+      - ./.runtime:/workspace/Agents/.runtime
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

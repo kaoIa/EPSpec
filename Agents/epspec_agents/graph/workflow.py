@@ -2,18 +2,25 @@ from typing import Any
 
 from ..config import RuntimeConfig
 from ..exceptions import DependencyError
+from ..runtime.repository import RunRepository
 from ..services.model_factory import StructuredModelAdapter
 from ..state import RuntimeState
 from .nodes import WorkflowNodes
 from .routing import route_after_execution, route_after_plan_validation, route_approval, route_planning, route_start, route_success
 
 
-def build_workflow(config: RuntimeConfig, adapter: StructuredModelAdapter, checkpointer: Any):
+def build_workflow(
+    config: RuntimeConfig,
+    planner_adapter: StructuredModelAdapter,
+    interpreter_adapter: StructuredModelAdapter,
+    checkpointer: Any,
+    repository: RunRepository,
+):
     try:
         from langgraph.graph import END, START, StateGraph
     except ImportError as exc:
-        raise DependencyError("缺少 langgraph，请安装 Agents/requirements-agent.txt。") from exc
-    nodes = WorkflowNodes(config, adapter)
+        raise DependencyError("缺少 langgraph") from exc
+    nodes = WorkflowNodes(config, planner_adapter, interpreter_adapter, repository)
     graph = StateGraph(RuntimeState)
     graph.add_node("initialize_run", nodes.guarded("initialize_run", nodes.initialize_run))
     graph.add_node("planning", nodes.guarded("planning", nodes.planning))
@@ -30,6 +37,7 @@ def build_workflow(config: RuntimeConfig, adapter: StructuredModelAdapter, check
     graph.add_node("validate_report", nodes.guarded("validate_report", nodes.validate_report))
     graph.add_node("finalization", nodes.guarded("finalization", nodes.finalization))
     graph.add_node("failure", nodes.failure)
+    graph.add_node("cancellation", nodes.cancellation)
     graph.add_edge(START, "initialize_run")
     graph.add_conditional_edges("initialize_run", route_start)
     graph.add_conditional_edges("planning", route_planning)
@@ -46,4 +54,5 @@ def build_workflow(config: RuntimeConfig, adapter: StructuredModelAdapter, check
     graph.add_conditional_edges("validate_report", route_success("finalization"))
     graph.add_edge("finalization", END)
     graph.add_edge("failure", END)
+    graph.add_edge("cancellation", END)
     return graph.compile(checkpointer=checkpointer)

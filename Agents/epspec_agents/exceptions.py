@@ -6,6 +6,10 @@ class ConfigurationError(AgentRuntimeError):
     __slots__ = ()
 
 
+class DependencyError(ConfigurationError):
+    __slots__ = ()
+
+
 class PlanningError(AgentRuntimeError):
     __slots__ = ()
 
@@ -34,6 +38,10 @@ class ToolExecutionError(AgentRuntimeError):
     __slots__ = ()
 
 
+class WorkerTimeoutError(ToolExecutionError):
+    __slots__ = ()
+
+
 class ResultParsingError(AgentRuntimeError):
     __slots__ = ()
 
@@ -46,5 +54,17 @@ class ReportValidationError(AgentRuntimeError):
     __slots__ = ()
 
 
-class DependencyError(ConfigurationError):
+class RunNotFoundError(AgentRuntimeError):
+    __slots__ = ()
+
+
+class RunStateError(AgentRuntimeError):
+    __slots__ = ()
+
+
+class RunCancelledError(AgentRuntimeError):
+    __slots__ = ()
+
+
+class ArtifactError(AgentRuntimeError):
     __slots__ = ()

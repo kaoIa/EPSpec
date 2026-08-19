@@ -1,34 +1,34 @@
+import hashlib
 import json
-from pathlib import Path
+import mimetypes
 import re
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from ..schemas import ExperimentPlan, ExperimentResult, ModelRunResult, PreprocessConfig
-
+from ..schemas import ArtifactRef, ExperimentPlan, ExperimentResult, ModelFamily, ModelId, ModelRunResult, PreprocessConfig
 
 METRICS = ["R2", "RMSE", "MAE", "Bias", "RPD", "RPIQ"]
-TARGETS = {"corn": "starch", "soil": "soil organic matter", "tecator": "fat"}
+TARGETS = {"shootout": "active pharmaceutical ingredient", "corn": "starch", "soil": "soil organic matter", "tecator": "fat"}
 
 
 class ResultParser:
-    def parse(self, plan: ExperimentPlan) -> ExperimentResult:
+    def parse(self, plan: ExperimentPlan, simulated: bool = False) -> ExperimentResult:
         main = self._model_result("main_model", plan.step_model_main.method, plan.step_model_main.family, plan.step_model_main.out_dir)
-        comparisons = [
-            self._model_result(f"compare_model_{index}", step.method, step.family, step.out_dir)
-            for index, step in enumerate(plan.step_model_compare.models, start=1)
-        ]
+        comparisons = [self._model_result(f"compare_model_{index}", step.method, step.family, step.out_dir) for index, step in enumerate(plan.step_model_compare.models, start=1)]
         prior = self._task_prior(plan.dataset_name, [main, *comparisons])
         return ExperimentResult(
+            run_id=plan.run_id,
             dataset_name=plan.dataset_name,
             preprocess=PreprocessConfig(enabled=plan.step_preprocess.enabled, method=plan.step_preprocess.method),
             main_result=main,
             comparison_results=comparisons,
             task_level_prior=prior,
+            simulated=simulated,
         )
 
-    def _model_result(self, role: str, method: str, family: str, result_dir: Path) -> ModelRunResult:
+    def _model_result(self, role: str, method: ModelId, family: ModelFamily, result_dir: Path) -> ModelRunResult:
         summary = self._read_json(self._find(result_dir, "summary.json")) or {}
         metrics_df = self._read_csv(self._find(result_dir, "metrics_per_fold.csv"))
         metrics_summary = self._metrics_summary(summary, metrics_df)
@@ -49,7 +49,30 @@ class ResultParser:
             metrics_per_fold=records,
             selection_details=selection,
             task_context=context,
+            artifacts=self._artifacts(result_dir),
         )
+
+    def _artifacts(self, root: Path) -> list[ArtifactRef]:
+        if not root.is_dir():
+            return []
+        output = []
+        for path in sorted(item for item in root.rglob("*") if item.is_file()):
+            digest = hashlib.sha256()
+            with path.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            media_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+            output.append(
+                ArtifactRef(
+                    name=str(path.relative_to(root)).replace("\\", "/"),
+                    path=path,
+                    media_type=media_type,
+                    role="model-output",
+                    sha256=digest.hexdigest(),
+                    size_bytes=path.stat().st_size,
+                )
+            )
+        return output
 
     def _find(self, root: Path, name: str) -> Path | None:
         if not root.is_dir():
@@ -83,7 +106,7 @@ class ResultParser:
             return None
 
     def _metrics_summary(self, summary: dict[str, Any], frame: pd.DataFrame | None) -> dict[str, dict[str, float]]:
-        output = {}
+        output: dict[str, dict[str, float]] = {}
         for metric in METRICS:
             value = summary.get(metric)
             if isinstance(value, dict) and value.get("mean") is not None and value.get("std") is not None:
@@ -99,9 +122,9 @@ class ResultParser:
             return []
         preferred = ["fold", "outer_fold", "pc", "best_k", "n_features", "n_selected_features", *METRICS]
         columns = [column for column in preferred if column in frame.columns] or list(frame.columns)
-        records = []
+        records: list[dict[str, Any]] = []
         for row in frame[columns].to_dict(orient="records"):
-            clean = {}
+            clean: dict[str, Any] = {}
             for key, value in row.items():
                 if pd.isna(value):
                     clean[key] = None
@@ -131,7 +154,8 @@ class ResultParser:
         for path in self._regex_files(root, r"interval_metrics_outerfold.*\.json$"):
             value = self._read_json(path)
             if value:
-                info = value.get("info") if isinstance(value.get("info"), dict) else {}
+                raw_info = value.get("info")
+                info: dict[str, Any] = raw_info if isinstance(raw_info, dict) else {}
                 prior = str(value.get("global_prior_knowledge") or "").strip()
                 return {
                     "dataset_key": info.get("dataset_key"),
@@ -148,7 +172,7 @@ class ResultParser:
         ranking_objects = {fold: self._read_json(path) or {} for path in ranking_files if (fold := self._fold_id(path)) is not None}
         best_values = self._fold_values(summary, frame, "best_k")
         best_map = {index + 1: value for index, value in enumerate(best_values or [])}
-        per_fold = []
+        per_fold: list[dict[str, Any]] = []
         consensus: dict[str, dict[str, Any]] = {}
         for fold in sorted(set(metric_objects) | set(ranking_objects)):
             intervals = metric_objects.get(fold, {}).get("intervals", [])
@@ -157,11 +181,18 @@ class ResultParser:
             ranking = sorted(ranking, key=lambda item: float(item.get("rank", 1e9)))
             if not ranking:
                 ranking = [
-                    {"id": item.get("interval_id"), "start": item.get("start_nm"), "end": item.get("end_nm"), "rank": index + 1, "importance_level": "fallback", "reason": "按 local_r2 恢复排序"}
+                    {
+                        "id": item.get("interval_id"),
+                        "start": item.get("start_nm"),
+                        "end": item.get("end_nm"),
+                        "rank": index + 1,
+                        "importance_level": "fallback",
+                        "reason": "按 local_r2 恢复排序",
+                    }
                     for index, item in enumerate(sorted(intervals, key=lambda item: float(item.get("local_r2", 0)), reverse=True))
                 ]
             best_k = best_map.get(fold, min(5, len(ranking)))
-            selected = []
+            selected: list[dict[str, Any]] = []
             for item in ranking[:best_k]:
                 metric = metric_index.get(str(item.get("id")), {})
                 record = {
@@ -182,7 +213,7 @@ class ResultParser:
                 except Exception:
                     continue
             per_fold.append({"fold": fold, "best_k": best_k, "selected_topk_intervals": selected})
-        consensus_rows = [
+        consensus_rows: list[dict[str, Any]] = [
             {
                 "start_nm": item["start_nm"],
                 "end_nm": item["end_nm"],
@@ -191,7 +222,7 @@ class ResultParser:
             }
             for item in consensus.values()
         ]
-        consensus_rows.sort(key=lambda item: (-item["selected_frequency"], item["avg_rank"] or 1e9, item["start_nm"]))
+        consensus_rows.sort(key=lambda item: (-int(item["selected_frequency"]), float(item["avg_rank"] or 1e9), float(item["start_nm"])))
         return {
             "selection_type": "epspec_topk_intervals",
             "best_k_per_fold": best_values,
@@ -223,18 +254,18 @@ class ResultParser:
                 groups.append([value])
         return [{"start_nm": group[0], "end_nm": group[-1], "n_points": len(group)} for group in groups]
 
-    def _coefficient_selection(self, root: Path, method: str, summary: dict[str, Any]) -> dict[str, Any]:
+    def _coefficient_selection(self, root: Path, method: ModelId, summary: dict[str, Any]) -> dict[str, Any]:
         frame = self._read_csv(self._find(root, "coefficients.csv"))
         if frame is None or frame.empty or not {"fold", "feature"}.issubset(frame.columns):
             return {"selection_type": "unknown", "note": "当前结果中未读取到可恢复逐折选段的 coefficients.csv。"}
         frame = frame.copy()
         frame["parsed"] = frame["feature"].map(self._feature)
         frame = frame[frame["parsed"].notna()]
-        per_fold = []
+        per_fold: list[dict[str, Any]] = []
         for fold, subset in frame.groupby("fold"):
             values = sorted(set(float(value) for value in subset["parsed"].tolist()))
             per_fold.append({"fold": int(fold), "n_selected_features": len(values), "selected_ranges": self._ranges(values)})
-        output = {
+        output: dict[str, Any] = {
             "selection_type": "selected_ranges_from_coefficients",
             "per_fold_selected_ranges": sorted(per_fold, key=lambda item: item["fold"]),
             "consensus_selected_ranges": self._ranges([float(value) for value in frame["parsed"].tolist()]),

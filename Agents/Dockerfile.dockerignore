@@ -1,0 +1,12 @@
+.git
+Agents/.env
+Agents/.mypy_cache
+Agents/.pytest_cache
+Agents/.ruff_cache
+Agents/.runtime
+Agents/.venv
+Agents/build
+Agents/dist
+Agents/runs
+**/__pycache__
+**/*.pyc

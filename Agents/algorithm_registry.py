@@ -2,7 +2,6 @@ from pathlib import Path
 
 from epspec_agents.tools.registry import ScientificToolRegistry, ToolSpec
 
-
 REGISTRY = ScientificToolRegistry(Path(__file__).resolve().parent.parent)
 
 

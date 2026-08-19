@@ -5,11 +5,15 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
-DatasetId = Literal["corn", "soil", "tecator"]
+DatasetId = Literal["shootout", "corn", "soil", "tecator"]
 TaskType = Literal["regression"]
 PreprocessId = Literal["savitzky_golay", "snv"]
 ModelId = Literal["plsr", "ipls_plsr", "cars_plsr", "EPSpec_plsr", "EPSpec_plsr_sliding"]
+ModelFamily = Literal["baseline_regression", "ipls_cars_regression", "wavelength_selection_regression"]
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 class StrictModel(BaseModel):
@@ -25,10 +29,6 @@ class PreprocessConfig(StrictModel):
         if self.enabled != (self.method is not None):
             raise ValueError("preprocess.enabled 与 preprocess.method 不一致")
         return self
-
-
-class ModelConfig(StrictModel):
-    method: ModelId
 
 
 class ComparisonConfig(StrictModel):
@@ -83,7 +83,7 @@ class PreprocessStep(StrictModel):
 
 class ModelExecutionStep(StrictModel):
     method: ModelId
-    family: Literal["baseline_regression", "ipls_cars_regression", "wavelength_selection_regression"]
+    family: ModelFamily
     task_type: TaskType = "regression"
     input_path: Path
     out_dir: Path
@@ -92,6 +92,12 @@ class ModelExecutionStep(StrictModel):
 class ComparisonExecutionStep(StrictModel):
     enabled: bool
     models: list[ModelExecutionStep] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_enabled(self) -> "ComparisonExecutionStep":
+        if self.enabled != bool(self.models):
+            raise ValueError("comparison execution enabled 与 models 不一致")
+        return self
 
 
 class ReportStep(StrictModel):
@@ -102,6 +108,7 @@ class ReportStep(StrictModel):
 
 
 class ExperimentPlan(StrictModel):
+    run_id: str
     dataset_name: DatasetId
     task_type: TaskType = "regression"
     step_preprocess: PreprocessStep
@@ -114,28 +121,21 @@ class ExperimentPlan(StrictModel):
 
     @classmethod
     def from_legacy_dict(cls, value: dict[str, Any]) -> "ExperimentPlan":
-        compare = value.get("step_model_compare", {})
+        payload = dict(value)
+        payload.setdefault("run_id", "legacy")
+        compare = payload.get("step_model_compare", {})
         if isinstance(compare, list):
-            value = dict(value)
-            value["step_model_compare"] = {"enabled": bool(compare), "models": compare}
-        return cls.model_validate(value)
+            payload["step_model_compare"] = {"enabled": bool(compare), "models": compare}
+        return cls.model_validate(payload)
 
 
 class ArtifactRef(StrictModel):
     name: str
     path: Path
     media_type: str
+    role: str = "artifact"
     sha256: str | None = None
     size_bytes: int | None = None
-
-
-class ModelMetrics(StrictModel):
-    R2: float | None = None
-    RMSE: float | None = None
-    MAE: float | None = None
-    Bias: float | None = None
-    RPD: float | None = None
-    RPIQ: float | None = None
 
 
 class ModelRunResult(StrictModel):
@@ -147,15 +147,18 @@ class ModelRunResult(StrictModel):
     metrics_per_fold: list[dict[str, Any]] = Field(default_factory=list)
     selection_details: dict[str, Any] = Field(default_factory=dict)
     task_context: dict[str, Any] | None = None
+    artifacts: list[ArtifactRef] = Field(default_factory=list)
 
 
 class ExperimentResult(StrictModel):
+    run_id: str
     dataset_name: DatasetId
     task_type: TaskType = "regression"
     preprocess: PreprocessConfig
     main_result: ModelRunResult
     comparison_results: list[ModelRunResult] = Field(default_factory=list)
     task_level_prior: dict[str, Any] = Field(default_factory=dict)
+    simulated: bool = False
 
 
 class ScientificReport(StrictModel):
@@ -167,21 +170,25 @@ class ExecutionError(StrictModel):
     error_type: str
     message: str
     traceback: str
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=utc_now)
 
 
 class RunStatus(str, Enum):
+    created = "created"
     initialized = "initialized"
     planning = "planning"
     awaiting_clarification = "awaiting_clarification"
     awaiting_approval = "awaiting_approval"
+    queued = "queued"
     executing = "executing"
     interpreting = "interpreting"
     completed = "completed"
     failed = "failed"
+    cancelled = "cancelled"
 
 
 class RunManifest(StrictModel):
+    schema_version: str = "1.0"
     run_id: str
     thread_id: str
     status: RunStatus
@@ -191,4 +198,32 @@ class RunManifest(StrictModel):
     plan: ExperimentPlan | None = None
     artifacts: list[ArtifactRef] = Field(default_factory=list)
     errors: list[ExecutionError] = Field(default_factory=list)
-    environment: dict[str, Any] = Field(default_factory=dict)
+    runtime: dict[str, Any] = Field(default_factory=dict)
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
+class RunSnapshot(StrictModel):
+    run_id: str
+    thread_id: str
+    target_stage: str
+    status: RunStatus
+    current_stage: str
+    user_request: str = ""
+    interruption: dict[str, Any] | None = None
+    result: dict[str, Any] | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    cancel_requested: bool = False
+    created_at: str
+    updated_at: str
+
+
+class DoctorCheck(StrictModel):
+    name: str
+    status: Literal["pass", "warn", "fail"]
+    message: str
+
+
+class DoctorReport(StrictModel):
+    ready: bool
+    checks: list[DoctorCheck]
+    runtime: dict[str, Any]

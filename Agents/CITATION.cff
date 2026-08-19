@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use EPSpec Agents, cite the EPSpec paper and this software release."
+title: "EPSpec Agents"
+type: software
+version: 1.0.0
+date-released: 2026-08-19
+authors:
+  - family-names: "Gu"
+    given-names: "Shenghao"
+  - family-names: "Hong"
+    given-names: "Mingjian"
+repository-code: "https://github.com/kaoIa/EPSpec"
+preferred-citation:
+  type: article
+  title: "EPSpec: An Evidence-Guided, Prior-Retrieval Agent for Near-Infrared Spectral Band Selection"
+  authors:
+    - family-names: "Gu"
+      given-names: "Shenghao"
+    - family-names: "Hong"
+      given-names: "Mingjian"
+  journal: "Journal of Chemometrics"
+  year: 2026
+  volume: 40
+  doi: "10.1002/cem.70167"

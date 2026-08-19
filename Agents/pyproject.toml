@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "epspec-agents"
+version = "1.0.0"
+description = "A stateful multi-agent runtime for evidence-guided near-infrared spectral band selection"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "EPSpec Authors" }]
+keywords = ["agents", "chemometrics", "near-infrared", "langgraph", "openai-agents", "rag"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "fastapi>=0.115,<1",
+  "langgraph>=0.6,<2",
+  "langgraph-checkpoint-sqlite>=2,<4",
+  "mcp[cli]>=2,<3",
+  "numpy>=1.26,<3",
+  "openai>=1.68,<3",
+  "openai-agents>=0.4,<1",
+  "openpyxl>=3.1,<4",
+  "pandas>=2.2,<3",
+  "pydantic>=2.10,<3",
+  "python-dotenv>=1.0,<2",
+  "scikit-learn>=1.5,<2",
+  "scipy>=1.13,<2",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2,<2",
+  "httpx>=0.28,<1",
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<8",
+  "ruff>=0.11,<1",
+]
+
+[project.scripts]
+epspec-agents = "epspec_agents.cli:main"
+epspec-mcp = "epspec_agents.mcp_server:serve"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["epspec_agents*"]
+
+[tool.setuptools.package-data]
+epspec_agents = ["prompts/*.txt"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -p no:cacheprovider"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 180
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+check_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+warn_unused_ignores = true
+
+[tool.coverage.run]
+branch = true
+source = ["epspec_agents"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = true

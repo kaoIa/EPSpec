@@ -1,0 +1,7 @@
+{
+  "request": "Run corn with EPSpec_plsr using SNV and compare plsr, ipls_plsr, and cars_plsr.",
+  "target_stage": "full",
+  "offline": true,
+  "simulate": true,
+  "auto_approve": true
+}

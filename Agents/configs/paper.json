@@ -1,0 +1,7 @@
+{
+  "request": "Run EPSpec_plsr on shootout without preprocessing and compare it with plsr, ipls_plsr, and cars_plsr.",
+  "target_stage": "full",
+  "offline": false,
+  "simulate": false,
+  "auto_approve": false
+}

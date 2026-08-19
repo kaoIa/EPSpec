@@ -1,0 +1,60 @@
+[
+  {
+    "id": "corn-epspec",
+    "request": "Use EPSpec on corn without preprocessing.",
+    "expected_status": "ready",
+    "expected_intent": {"dataset_name": "corn", "model": "EPSpec_plsr"}
+  },
+  {
+    "id": "shootout-comparison",
+    "request": "Run EPSpec_plsr on shootout and compare plsr, ipls, and cars.",
+    "expected_status": "ready",
+    "expected_intent": {
+      "dataset_name": "shootout",
+      "model": "EPSpec_plsr",
+      "compare": {"enabled": true, "models": ["plsr", "ipls_plsr", "cars_plsr"]}
+    }
+  },
+  {
+    "id": "soil-snv",
+    "request": "对 soil 使用 SNV 预处理并运行 EPSpec。",
+    "expected_status": "ready",
+    "expected_intent": {"dataset_name": "soil", "model": "EPSpec_plsr"}
+  },
+  {
+    "id": "tecator-sliding",
+    "request": "Run the EPSpec sliding-window variant on tecator.",
+    "expected_status": "ready",
+    "expected_intent": {
+      "dataset_name": "tecator",
+      "model": "EPSpec_plsr_sliding",
+      "compare": {"enabled": false, "models": []}
+    }
+  },
+  {
+    "id": "missing-dataset",
+    "request": "Run EPSpec and compare it with PLSR.",
+    "expected_status": "needs_clarification"
+  },
+  {
+    "id": "missing-model",
+    "request": "Run an experiment on corn.",
+    "expected_status": "needs_clarification"
+  },
+  {
+    "id": "chinese-corn",
+    "request": "在玉米数据集上运行证据引导波段选择，并和全谱 PLSR 比较。",
+    "expected_status": "ready",
+    "expected_intent": {"dataset_name": "corn", "model": "EPSpec_plsr"}
+  },
+  {
+    "id": "primary-by-mention-order",
+    "request": "Run PLSR on corn and compare it with EPSpec.",
+    "expected_status": "ready",
+    "expected_intent": {
+      "dataset_name": "corn",
+      "model": "plsr",
+      "compare": {"enabled": true, "models": ["EPSpec_plsr"]}
+    }
+  }
+]

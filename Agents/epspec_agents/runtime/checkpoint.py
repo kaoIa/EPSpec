@@ -15,7 +15,7 @@ class CheckpointManager:
         try:
             from langgraph.checkpoint.sqlite import SqliteSaver
         except ImportError as exc:
-            raise DependencyError("缺少 langgraph-checkpoint-sqlite，请安装 Agents/requirements-agent.txt。") from exc
+            raise DependencyError("缺少 langgraph-checkpoint-sqlite") from exc
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(str(self.path), check_same_thread=False)
         self.checkpointer = SqliteSaver(self.connection)

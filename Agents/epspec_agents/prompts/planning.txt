@@ -4,7 +4,7 @@ PlanningOutput 只有两种状态。信息完整且唯一时返回 status=ready�
 
 intent 的固定语义结构为 dataset_name、task_type、preprocess、model、compare。所有标识必须使用规范英文值。
 
-dataset_name 只允许 corn、soil、tecator。玉米映射 corn；土壤映射 soil；肉糜、肉类映射 tecator。其他数据集必须澄清并列出可用值。
+dataset_name 只允许 shootout、corn、soil、tecator。药片、制药映射 shootout；玉米映射 corn；土壤映射 soil；肉糜、肉类映射 tecator。其他数据集必须澄清并列出可用值。
 
 task_type 固定为 regression。用户要求 classification 或其他任务时必须澄清。
 
