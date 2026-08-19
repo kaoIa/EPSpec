@@ -61,24 +61,3 @@ To control token costs, limit the experimental scope, and keep the presentation 
 This repository also provides a simple example based on an agent-oriented framework. The example is intended solely to demonstrate how the relevant components can be organized and invoked within an automated analysis workflow.
 
 Readers may adapt and extend this example according to the requirements of their own applications and experiments to construct customized workflows for automated near-infrared spectral analysis, wavelength selection, and regression modeling.
-
-## Citation
-
-When using this repository in academic work, please cite the corresponding paper:
-
-```bibtex
-@article{your_citation_key,
-  title   = {Paper Title},
-  author  = {Author Names},
-  journal = {Journal Name},
-  year    = {Year},
-  volume  = {Volume},
-  number  = {Issue},
-  pages   = {Page Range},
-  doi     = {DOI}
-}
-```
-
-## License
-
-The licensing terms for the code and other materials in this repository are provided in the `LICENSE` file.
